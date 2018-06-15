@@ -2,7 +2,8 @@
 title: "Describing a Wine"
 author: "Ellis Hughes"
 date: "June 14, 2018"
-output:html_document:
+output:
+  html_document:
     keep_md: yes
 ---
 
@@ -16,7 +17,7 @@ library(tidyverse)
 library(tidytext)
 library(tokenizers)
 opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE)
-wineData<-read.csv("winemag-data-130k-v2.csv",header = TRUE,stringsAsFactors = FALSE)
+wineData<-read.csv("../winemag-data-130k-v2.csv",header = TRUE,stringsAsFactors = FALSE)
 ```
 
 #The Breakdown

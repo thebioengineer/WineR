@@ -7,11 +7,7 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-library(knitr)
-opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE)
-wineData<-read.csv("../winemag-data-130k-v2.csv",header = TRUE,stringsAsFactors = FALSE)
-```
+
 
 ## Planting the Seeds
 
@@ -33,32 +29,23 @@ It contains 129971 observations, of 13 variables. Zack thoughfully scraped out i
 Wine scoring is an interesting exercise in trying to distill many different descriptors of wine into a number to help someone that may not be so knowledgale about wine know if they are getting a "good one". My first question is whether there is any bias in scoring. Will wines that are produced from the traditional wine producing regions be more likely to recieve a higher score?
 
 
-```{r PointsVsCountry, echo=FALSE}
-library(tidyverse)
-library(ggplot2)
-winescoring<-wineData%>%
-  group_by(country)%>%
-  filter(n()>1000)%>%
-  select(country,points)
 
-orderedWineScoring<-winescoring%>%
-  summarise(
-    nReviews=n(),
-    Min=min(points),
-    Q_1=quantile(points,.25),
-    Mean=mean(points),
-    Median=median(points),
-    Q_3=quantile(points,.75),
-    Max=max(points),
-    SD=sd(points))%>%
-  arrange(Mean)
+country         nReviews   Min   Q_1       Mean   Median   Q_3   Max         SD
+-------------  ---------  ----  ----  ---------  -------  ----  ----  ---------
+Chile               4472    80    85   86.49352       86    88    95   2.692959
+Argentina           3800    80    84   86.71026       87    89    97   3.179627
+Spain               6645    80    85   87.28834       87    89    98   3.066284
+South Africa        1401    82    86   88.05639       88    90    95   2.435826
+Portugal            5691    80    86   88.25022       88    90   100   2.996122
+New Zealand         1419    80    87   88.30303       88    90    95   2.435008
+Italy              19540    80    87   88.56223       88    90   100   2.649756
+US                 54504    80    86   88.56372       88    91   100   3.114841
+Australia           2329    80    87   88.58051       89    91   100   2.989900
+France             22093    80    87   88.84511       89    91   100   3.044423
+Germany             2165    81    88   89.85173       90    91    98   2.469351
+Austria             3345    82    88   90.10135       90    92    98   2.499799
 
-kable(orderedWineScoring)
-
-winescoring%>%ungroup()%>%mutate(country=factor(country,levels=as.character(orderedWineScoring$country)))%>%
-ggplot()+geom_boxplot(aes(y=points,x=country,fill=country))+ggtitle("Wine Scores by Country")+xlab("Country")+ylab("Wine Magazine Score")
-
-```
+![](First_Pass_files/figure-html/PointsVsCountry-1.png)<!-- -->
 
 Surprisingly, France did not have the highest average, Austria did. Now, this is likely due to my ignorance of historical wine industries, but I had always thought of France before thinking of Germany and Austria as premier wine producing regions. This may be from the Burgundy region of France, but Further digging is needed
 
@@ -67,32 +54,16 @@ Surprisingly, France did not have the highest average, Austria did. Now, this is
 My next curiosity was whether quality wine can be purchased without breaking the bank. In the documentary SOMM:Out of the bottle, one of the sommeliers said you can find great bottles at $20/bottle. Lets put this to the test. Per [statista.com]("https://www.statista.com/statistics/259433/average-price-of-leading-types-of-wine-in-the-us/"), the average cost of a bottle purchased in the United States was USD8.98. Lets make the cuts at 0-10,11-15,16-20,21-35,35+. These cuts are rather arbitrary, but represent where I would personally draw the lines between cooking wine, every day wine, nice wine, wine I am trying to impress with, and wine I will probably never buy!
 
 
-```{r PointsVsPrice, echo=FALSE}
-library(tidyverse)
-library(ggplot2)
-winescoring<-wineData%>%
-  filter(!is.na(price))%>%
-  mutate(priceSplits=cut(price, breaks=c(-Inf, 10 , 15, 20, 35, Inf), labels=c("$0-$10","$10-15","$16-20","$21-35","$35+")))%>%
-  select(priceSplits,points,price,title)
 
-orderedWineScoring<-winescoring%>%
-  group_by(priceSplits)%>%
-  summarise(
-    nReviews=n(),
-    Min=min(points),
-    Q_1=quantile(points,.25),
-    Mean=mean(points),
-    Median=median(points),
-    Q_3=quantile(points,.75),
-    Max=max(points))%>%
-  arrange(Mean)
+priceSplits    nReviews   Min   Q_1       Mean   Median   Q_3   Max
+------------  ---------  ----  ----  ---------  -------  ----  ----
+$0-$10             6280    80    84   85.02404       85    86    91
+$10-15            18822    80    85   86.20434       86    88    94
+$16-20            21239    80    86   87.36282       87    89    96
+$21-35            34891    80    87   88.42618       88    90    97
+$35+              39743    80    89   90.57119       91    93   100
 
-kable(orderedWineScoring)
-
-winescoring%>%ungroup()%>%
-ggplot()+geom_point(aes(y=points,x=price,color=priceSplits))+ggtitle("Wine Scores by Price")+xlab("Price($)")+ylab("Wine Magazine Score")+scale_x_log10()
-
-```
+![](First_Pass_files/figure-html/PointsVsPrice-1.png)<!-- -->
 
 This data and plot seems to indicate what you would expect; the more you spend, the more likely the bottle is to be highly rated. However, you do not have to spend all the money you have in your alcohol budget for the month to impress your date. The highest rating for the \$15-20s bottles was a wopping 96 points, only 1 point less than the highest ratings \$21-35 range. This bottle happens to be from my home state of Washington, and is the 2007 Rulo Syrah (Columbia Valley). I will have to see if I can find any of its cousins around!
 
@@ -101,41 +72,23 @@ This data and plot seems to indicate what you would expect; the more you spend, 
 My final curiosity was whether certain varietals were predisposed to a higher score. The wine data I have has over 700 varietals, so I will keep only those with over 3000 entries in the data. This should limit us to the main varietals. 
 
 
-```{r PointsVsVarietal, echo=FALSE}
-winescoring<-wineData%>%
-  group_by(variety)%>%
-  filter(n()>3000)%>%
-  select(variety,points)
 
-orderedWineScoring<-winescoring%>%
-  summarise(
-    nReviews=n(),
-    Min=min(points),
-    Q_1=quantile(points,.25),
-    Mean=mean(points),
-    Median=median(points),
-    Q_3=quantile(points,.75),
-    Max=max(points),
-    SD=sd(points))%>%
-  arrange(desc(Mean))
+variety                     nReviews   Min   Q_1       Mean   Median   Q_3   Max         SD
+-------------------------  ---------  ----  ----  ---------  -------  ----  ----  ---------
+Riesling                        5189    80    87   89.45018       90    91    98   2.862513
+Pinot Noir                     13272    80    87   89.41147       90    92    99   3.123967
+Syrah                           4142    80    87   89.28658       90    92   100   3.037114
+Bordeaux-style Red Blend        6915    80    87   89.10644       89    91   100   3.136137
+Cabernet Sauvignon              9472    80    86   88.60758       88    91   100   3.316328
+Red Blend                       8946    80    87   88.38028       88    90    99   2.776897
+Chardonnay                     11753    80    86   88.34008       88    91   100   3.231557
+Sauvignon Blanc                 4967    80    86   87.42964       87    89    96   2.685680
+Merlot                          3102    80    85   87.20858       87    89   100   2.967417
+RosÃ©                           3564    80    85   86.84624       87    88    96   2.526633
 
-kable(orderedWineScoring)
-
-winescoring%>%ungroup()%>%mutate(variety=factor(variety,levels=as.character(orderedWineScoring$variety)))%>%
-ggplot()+geom_boxplot(aes(y=points,x=variety,fill=variety))+ggtitle("Wine Scores by Variety")+xlab("Varietal")+ylab("Wine Magazine Score")
-
-
-```
+![](First_Pass_files/figure-html/PointsVsVarietal-1.png)<!-- -->
 
 
 Unsurprisingly, most of the top tastes wine types were reds. However, the highest rated overall was the Riesling. While I really enjoy rieslings, I know many that find them sweet. That could be the price range that I am typically in though! Lets see how ratings and price relate for these top varietals.
 
-```{r PointsVsVarietalvs Price, echo=FALSE}
-winescoring<-wineData%>%
-  group_by(variety)%>%
-  filter(n()>3000,!is.na(price))%>%
-  select(variety,points,price)
-
-winescoring%>%ungroup()%>%mutate(variety=factor(variety,levels=as.character(orderedWineScoring$variety)))%>%
-ggplot()+geom_point(aes(y=points,x=price,color=variety))+ggtitle("Wine Scores by Variety and Price")+xlab("Price($)")+ylab("Wine Magazine Score")+scale_x_log10()
-
+![](First_Pass_files/figure-html/PointsVsVarietalvs Price-1.png)<!-- -->
