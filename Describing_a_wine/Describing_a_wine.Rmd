@@ -49,7 +49,9 @@ The top counted words remaining make sense, as the word "wine", when describing 
 ```{r description_counts}
 
 wineData_TidyDescriptions %>%
-  count(word, sort = TRUE) 
+  count(word, sort = TRUE) %>%
+  head(n=100)%>%
+  kable()
 
 ```
 
@@ -76,7 +78,8 @@ wineData_TidyDescriptions %>%
   }%>%
   mutate(wine=rownames(.))%>%
   arrange(wine)%>%
-  select(wine,Word1,Word2,Word3,Word4,Word5)
+  select(wine,Word1,Word2,Word3,Word4,Word5)%>%
+  kable()
 
 ```
 
@@ -140,12 +143,12 @@ wine_COUNTS<-wineData_TidyDescriptions %>%
   arrange(COUNT)%>%
   mutate(color=ifelse(REDS>WHITE,"#59143b","#f8fce0"))
 
-
+par(bg="black") 
 wine_COUNTS%>%
   arrange(desc(as.numeric(COUNT)))%>%
   mutate(freq=COUNT)%>%
   top_n(300)%>%
-  wordcloud2(color = wine_COUNTS$color,backgroundColor = "black",fontFamily = "Bookman walter")
+  {wordcloud(words = .$word, freq = .$freq, random.color = FALSE, color = .$color, random.order = FALSE)}
 
 
 ```
